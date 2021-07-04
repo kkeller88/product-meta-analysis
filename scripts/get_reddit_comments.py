@@ -17,18 +17,19 @@ crate_query = f""" CREATE TABLE IF NOT EXISTS reddit_comments (
     upvotes int,
     parent_id text,
     subreddit text,
+	category text,
     UNIQUE(id)
     )"""
 db.write(crate_query)
 
 # get data
-def get_comments(post_ids):
+def get_comments(post_ids, category):
     r = Reddit(rest=1)
-    c = [r.get_all_comments_formatted(id) for id in post_ids]
+    c = [r.get_all_comments_formatted(id, category=category) for id in post_ids]
     comments = pd.concat(c)
     return comments
 post_ids = read_config('reddit_comments', file_name).get('post_ids')
-comments = get_comments(post_ids)
+comments = get_comments(post_ids, category=file_name)
 
 # write data
 def write_data(data, database):

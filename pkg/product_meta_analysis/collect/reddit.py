@@ -53,7 +53,7 @@ class Reddit:
             for ix, comment in enumerate(submission.comments.list())
             }
 
-    def get_all_comments_formatted(self, id):
+    def get_all_comments_formatted(self, id, category='none'):
         submission = self.reddit.submission(id=id)
         submission.comments.replace_more(limit=None)
         comments = [
@@ -62,7 +62,8 @@ class Reddit:
                 comment.body,
                 comment.score,
                 comment.parent_id,
-                comment.subreddit_id
+                comment.subreddit_id,
+                category
                 ]
             for ix, comment in enumerate(submission.comments.list())
             ]
@@ -71,7 +72,8 @@ class Reddit:
             'text',
             'upvotes',
             'parent_id',
-            'subreddit_id'
+            'subreddit_id',
+            'category'
         ]
         comments = pd.DataFrame(comments, columns=cols)
         if self.rest:
