@@ -1,0 +1,8 @@
+name: product-meta-analysis
+dependencies:
+  - python>=3.8
+  - pandas
+  - numpy
+  - pip
+    - requests
+    - beautifulsoup4
