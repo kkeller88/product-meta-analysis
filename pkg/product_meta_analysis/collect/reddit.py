@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import time
 
 import pandas as pd
 import yaml
@@ -10,13 +11,14 @@ SECRETS_PATH = os.path.join(Path(__file__).parents[3], 'secrets')
 
 # Source: https://praw.readthedocs.io/en/latest/tutorials/comments.html
 class Reddit:
-    def __init__(self):
+    def __init__(self, rest=None):
         client_id, secret_id = self._get_reddit_secrets()
         self.reddit = praw.Reddit(
             user_agent="Comment Extraction (by u/TampaTurtle)",
             client_id=client_id,
             client_secret=secret_id,
             )
+        self.rest = rest
 
     def _get_reddit_secrets(self):
         path = os.path.join(SECRETS_PATH, 'reddit.yaml')
@@ -72,4 +74,6 @@ class Reddit:
             'subreddit_id'
         ]
         comments = pd.DataFrame(comments, columns=cols)
+        if self.rest:
+            time.sleep(self.rest)
         return comments

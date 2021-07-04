@@ -4,10 +4,10 @@ import pandas as pd
 
 from product_meta_analysis.database import Database
 from product_meta_analysis.collect.reddit import Reddit
+from product_meta_analysis.utils import read_config
 
-post_ids = [
-    'odm22a'
-    ]
+
+file_name = 'gluten_free_flour'
 
 # create table
 db = Database()
@@ -23,10 +23,11 @@ db.write(crate_query)
 
 # get data
 def get_comments(post_ids):
-    r = Reddit()
+    r = Reddit(rest=1)
     c = [r.get_all_comments_formatted(id) for id in post_ids]
     comments = pd.concat(c)
     return comments
+post_ids = read_config('reddit_comments', file_name).get('post_ids')
 comments = get_comments(post_ids)
 
 # write data
