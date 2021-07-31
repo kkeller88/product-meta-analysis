@@ -29,10 +29,13 @@ def save_comments(data, database):
 	db.drop('tmp')
 
 
-file_name = 'gluten_free_flour'
-config_name = 'reddit_comments'
+config_type = 'reddit_comments'
+config_name = 'gluten_free_flour'
+config = read_config(config_type, config_name)
+post_ids = config.get('post_ids')
+category_name = config.get('name')
+
 db = Database()
-post_ids = read_config(config_name, file_name).get('post_ids')
-comments = get_comments(post_ids, category=file_name)
+comments = get_comments(post_ids, category=category_name)
 save_comments(comments, db)
 db.close()

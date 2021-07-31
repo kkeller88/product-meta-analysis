@@ -8,12 +8,11 @@ from product_meta_analysis.analyze import brands
 from product_meta_analysis.utils import read_config
 
 
-def get_comments(db, file_name):
+def get_comments(db, category_name):
     query = f"""
         select body, id
         from reddit_comments
-        where category = '{file_name}'
-        limit 20
+        where category = '{category_name}'
         """
     comments = db.read(query)
     return comments
@@ -31,6 +30,7 @@ def get_brands(tokens, brand_names):
     brands_ = [fbr.get_brands(x) for x in tokens]
     return brands_
 
+# TODO: This is getting a little messy; can we factor some of this out
 def format_data(comments, brands_, brand_names):
     ids = [x[1] for x in comments]
     data = [
@@ -66,14 +66,14 @@ def save_data(data, db):
     db.drop('tmp')
 
 
-file_name = 'gluten_free_flour'
-config_name = 'reddit_comments'
-
-# TODO: Long term we should identiy brands based on text
-brand_names = read_config(config_name, file_name).get('brands')
+config_type = 'reddit_comments'
+config_name = 'gluten_free_flour'
+config = read_config(config_type, config_name)
+brand_names = config.get('brands')
+category_name = config.get('name')
 
 db = Database()
-comments = get_comments(db, file_name)
+comments = get_comments(db, category_name)
 tokens = get_noun_phrases(comments)
 brands_ = get_brands(tokens, brand_names)
 data = format_data(comments, brands_, brand_names)
