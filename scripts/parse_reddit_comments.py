@@ -54,6 +54,9 @@ def format_data(comments, brands_, brand_names):
     brand_names_ = {x:ix for ix, x in enumerate(brand_names)}
     data['brand_ix'] = data['brands'].map(brand_names_)
     data['annotation_id'] = data['id'] + data['sentence_ix'].astype(str) + data['brand_ix'].fillna(-1).astype(int).astype(str)
+    data = data \
+        [data['brands'].notnull()] \
+        .drop_duplicates(subset=['annotation_id'])
     return data
 data = format_data(comments, brands_, brand_names)
 print(data)
