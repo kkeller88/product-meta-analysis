@@ -1,24 +1,23 @@
+import datetime
+
 import pandas as pd
 
-from product_meta_analysis.database import Database
+from product_meta_analysis.database.database import Database
 from product_meta_analysis.analyze import tokenize
 from product_meta_analysis.analyze import brands
 from product_meta_analysis.utils import read_config
 
-# TODO: Long term we should identiy brands based on text
-file_name = 'gluten_free_flour'
 
-# get comments
-db = Database()
-query = f"""
-    select body, id
-    from reddit_comments
-    where category = 'gluten_free_flour'
-    limit 20
-    """
-comments = db.read(query)
+def get_comments(db, file_name):
+    query = f"""
+        select body, id
+        from reddit_comments
+        where category = '{file_name}'
+        limit 20
+        """
+    comments = db.read(query)
+    return comments
 
-# tokenize comments
 def get_noun_phrases(comments):
     s = tokenize.Tokenizer()
     comments = [
@@ -26,17 +25,12 @@ def get_noun_phrases(comments):
         for x in comments
         ]
     return comments
-tokens = get_noun_phrases(comments)
 
-# identify brands
 def get_brands(tokens, brand_names):
     fbr = brands.FuzzyBrandRecognizer(brands=brand_names)
     brands_ = [fbr.get_brands(x) for x in tokens]
     return brands_
-brand_names = read_config('reddit_comments', file_name).get('brands')
-brands_ = get_brands(tokens, brand_names)
 
-# format data
 def format_data(comments, brands_, brand_names):
     ids = [x[1] for x in comments]
     data = [
@@ -54,27 +48,14 @@ def format_data(comments, brands_, brand_names):
     brand_names_ = {x:ix for ix, x in enumerate(brand_names)}
     data['brand_ix'] = data['brands'].map(brand_names_)
     data['annotation_id'] = data['id'] + data['sentence_ix'].astype(str) + data['brand_ix'].fillna(-1).astype(int).astype(str)
+    data['process_datetime'] = datetime.datetime.now()
+    data['process_date'] = datetime.date.today()
     data = data \
         [data['brands'].notnull()] \
         .drop_duplicates(subset=['annotation_id'])
     return data
-data = format_data(comments, brands_, brand_names)
-print(data)
 
-
-# load data
-def load_data(data, db):
-    crate_query = f""" CREATE TABLE IF NOT EXISTS reddit_comment_annotations (
-    	id text,
-        sentence_ix int,
-        brands text,
-    	sentiment text,
-        brand_ix int,
-        annotation_id text PRIMARY KEY,
-        UNIQUE(annotation_id)
-        )"""
-    db.write(crate_query)
-
+def save_data(data, db):
     data.to_sql(
         name='tmp',
         con=db._con,
@@ -84,5 +65,17 @@ def load_data(data, db):
     db.write('INSERT OR IGNORE INTO reddit_comment_annotations SELECT * FROM tmp')
     db.drop('tmp')
 
+
+file_name = 'gluten_free_flour'
+config_name = 'reddit_comments'
+
+# TODO: Long term we should identiy brands based on text
+brand_names = read_config(config_name, file_name).get('brands')
+
 db = Database()
-load_data(data, db)
+comments = get_comments(db, file_name)
+tokens = get_noun_phrases(comments)
+brands_ = get_brands(tokens, brand_names)
+data = format_data(comments, brands_, brand_names)
+save_data(data, db)
+db.close()
