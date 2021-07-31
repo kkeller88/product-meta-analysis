@@ -9,5 +9,8 @@ post_ids: [
   '7s9440',
   '769uw0'
   ]
-
-# first page
+brands: [
+  'King Arthur',
+  'Cup4cup',
+  "Bob's Red Mill"
+  ]
