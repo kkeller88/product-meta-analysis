@@ -2,6 +2,8 @@ from product_meta_analysis.database.database import Database
 
 
 # TODO: condense/parameterize this; lots of duplicated code
+# TODO: think about moving brand name out to a separate table once
+#  config versioning is in a better place so brand_ix is reliable
 def create_comment_annotation_table(db):
     table_name = "reddit_comment_annotations"
     try:
@@ -9,9 +11,9 @@ def create_comment_annotation_table(db):
     except:
         pass
     query = f""" CREATE TABLE IF NOT EXISTS {table_name} (
-        id text,
+        comment_id text,
         sentence_ix int,
-        brands text,
+        brand text,
     	sentiment text,
         brand_ix int,
         annotation_id text PRIMARY KEY,
@@ -28,7 +30,7 @@ def create_comment_table(db):
     except:
         pass
     query = f""" CREATE TABLE IF NOT EXISTS {table_name} (
-        id text PRIMARY KEY,
+        comment_id text PRIMARY KEY,
         body text,
         upvotes int,
         parent_id text,
@@ -36,6 +38,6 @@ def create_comment_table(db):
         category text,
         process_datetime timestamp,
         process_date date,
-        UNIQUE(id)
+        UNIQUE(comment_id)
         )"""
     db.write(query)

@@ -32,7 +32,7 @@ class Reddit:
             ix: {
                 'body':comment.body,
                 'upvotes':comment.score,
-                'id': comment.id,
+                'comment_id': comment.id,
                 'parent_id': None,
                 'subreddit_id': comment.subreddit_id,
                 }
@@ -46,7 +46,7 @@ class Reddit:
             ix: {
                 'body':comment.body,
                 'upvotes':comment.score,
-                'id': comment.id,
+                'comment_id': comment.id,
                 'parent_id': comment.parent_id,
                 'subreddit_id': comment.subreddit_id
                 }
@@ -68,7 +68,7 @@ class Reddit:
             for ix, comment in enumerate(submission.comments.list())
             ]
         cols = [
-            'id',
+            'comment_id',
             'text',
             'upvotes',
             'parent_id',

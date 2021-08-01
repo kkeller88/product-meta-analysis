@@ -10,7 +10,7 @@ from product_meta_analysis.utils import read_config
 
 def get_comments(db, category_name):
     query = f"""
-        select body, id
+        select body, comment_id
         from reddit_comments
         where category = '{category_name}'
         """
@@ -41,18 +41,19 @@ def format_data(comments, brands_, brand_names):
         ]
     data = pd.DataFrame(
         data,
-        columns=['id', 'sentence_ix', 'brands']
+        columns=['comment_id', 'sentence_ix', 'brands']
         )
     data['sentiment'] = 'None'
     data = data.explode('brands')
     brand_names_ = {x:ix for ix, x in enumerate(brand_names)}
     data['brand_ix'] = data['brands'].map(brand_names_)
-    data['annotation_id'] = data['id'] + data['sentence_ix'].astype(str) + data['brand_ix'].fillna(-1).astype(int).astype(str)
+    data['annotation_id'] = data['comment_id'] + data['sentence_ix'].astype(str) + data['brand_ix'].fillna(-1).astype(int).astype(str)
     data['process_datetime'] = datetime.datetime.now()
     data['process_date'] = datetime.date.today()
     data = data \
         [data['brands'].notnull()] \
-        .drop_duplicates(subset=['annotation_id'])
+        .drop_duplicates(subset=['annotation_id']) \
+        .rename(columns={'brands': 'brand'})
     return data
 
 def save_data(data, db):
