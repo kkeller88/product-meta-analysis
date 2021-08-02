@@ -1,0 +1,8 @@
+comment_id,upvotes,parent_id,sentence_ix,brand,annotation_id
+comment1,2,t3_post1,0,Bob's Red Mill,id1
+comment1,2,t3_post1,0,Cup4cup,id2
+comment1,2,t3_post1,0,King Arthur,id3
+comment2,3,t3_post2,0,King Arthur,id4
+comment2,3,t3_post2,0,Cup4cup,id5
+comment2,3,t3_post2,0,King Arthur,id6
+comment3,2,t1_comment1,2,King Arthur,id7

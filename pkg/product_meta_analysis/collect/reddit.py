@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import time
 
 import pandas as pd
 import yaml
@@ -10,13 +11,14 @@ SECRETS_PATH = os.path.join(Path(__file__).parents[3], 'secrets')
 
 # Source: https://praw.readthedocs.io/en/latest/tutorials/comments.html
 class Reddit:
-    def __init__(self):
+    def __init__(self, rest=None):
         client_id, secret_id = self._get_reddit_secrets()
         self.reddit = praw.Reddit(
             user_agent="Comment Extraction (by u/TampaTurtle)",
             client_id=client_id,
             client_secret=secret_id,
             )
+        self.rest = rest
 
     def _get_reddit_secrets(self):
         path = os.path.join(SECRETS_PATH, 'reddit.yaml')
@@ -30,7 +32,7 @@ class Reddit:
             ix: {
                 'body':comment.body,
                 'upvotes':comment.score,
-                'id': comment.id,
+                'comment_id': comment.id,
                 'parent_id': None,
                 'subreddit_id': comment.subreddit_id,
                 }
@@ -44,14 +46,14 @@ class Reddit:
             ix: {
                 'body':comment.body,
                 'upvotes':comment.score,
-                'id': comment.id,
+                'comment_id': comment.id,
                 'parent_id': comment.parent_id,
                 'subreddit_id': comment.subreddit_id
                 }
             for ix, comment in enumerate(submission.comments.list())
             }
 
-    def get_all_comments_formatted(self, id):
+    def get_all_comments_formatted(self, id, category='none'):
         submission = self.reddit.submission(id=id)
         submission.comments.replace_more(limit=None)
         comments = [
@@ -60,16 +62,20 @@ class Reddit:
                 comment.body,
                 comment.score,
                 comment.parent_id,
-                comment.subreddit_id
+                comment.subreddit_id,
+                category
                 ]
             for ix, comment in enumerate(submission.comments.list())
             ]
         cols = [
-            'id',
+            'comment_id',
             'text',
             'upvotes',
             'parent_id',
-            'subreddit_id'
+            'subreddit_id',
+            'category'
         ]
         comments = pd.DataFrame(comments, columns=cols)
+        if self.rest:
+            time.sleep(self.rest)
         return comments

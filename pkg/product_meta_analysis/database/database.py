@@ -3,7 +3,7 @@ import sqlite3
 from pathlib import Path
 
 DB_PATH = os.path.join(
-    Path(__file__).parents[2],
+    Path(__file__).parents[3],
     'database/product_meta_analysis.db'
     )
 
