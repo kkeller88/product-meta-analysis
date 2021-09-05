@@ -5,11 +5,8 @@ import pandas as pd
 
 from product_meta_analysis.database.database import Database
 import product_meta_analysis.collect.sitemap as s
+from product_meta_analysis.utils import read_config
 
-domains = [
-    "https://helpmecleanthis.com/",
-    #"https://glutenfreeonashoestring.com/",
-    ]
 
 def hash_url(s):
     return hashlib.sha256(s.encode('utf-8')).hexdigest()
@@ -34,6 +31,11 @@ def save_urls(data, database):
         )
     db.write('INSERT OR IGNORE INTO website_urls SELECT * FROM tmp')
     db.drop('tmp')
+
+config_type = 'website_content'
+config_name = 'example'
+config = read_config(config_type, config_name)
+domains = config.get('domains')
 
 db = Database()
 urls = get_urls(domains)
