@@ -35,7 +35,7 @@ def save_urls(data, database):
 config_type = 'website_content'
 config_name = 'example'
 config = read_config(config_type, config_name)
-domains = config.get('domains')
+domains = config.get('urls').get('domains')
 
 db = Database()
 urls = get_urls(domains)
