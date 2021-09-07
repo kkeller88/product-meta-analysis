@@ -27,8 +27,11 @@ class IngredientExtractor:
     def _extract_ingredients(self, ingredients):
         if 'wprm-recipe' in ' '.join(ingredients["class"]):
             extract = self._extract_ingredients_wprm(ingredients)
+        elif 'tasty-recipe' in ' '.join(ingredients["class"]):
+            extract = self._extract_ingredients_tasty(ingredients)
         else:
             raise Exception ('Recipe card format not recognized!')
+        return extract
 
     def _extract_ingredients_wprm(self, ingredients):
         def get_span_item(span, item_name):
@@ -40,6 +43,15 @@ class IngredientExtractor:
             name = get_span_item(x, "wprm-recipe-ingredient-name")
             amount = get_span_item(x, "wprm-recipe-ingredient-amount")
             unit = get_span_item(x, "wprm-recipe-ingredient-unit")
+            extract.append({'name': name, 'amount':amount, 'unit': unit})
+        return extract
+
+    def _extract_ingredients_tasty(self, ingredients):
+        extract = []
+        for x in ingredients.findAll('li'):
+            name = x.contents[-1]
+            amount = x["data-amount"] if x.get("data-amount", None) is not None else None
+            unit = x["data-unit"] if x.get("data-unit", None) is not None else None
             extract.append({'name': name, 'amount':amount, 'unit': unit})
         return extract
 
