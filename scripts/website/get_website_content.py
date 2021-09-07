@@ -1,10 +1,17 @@
 import datetime
+import json
 
 import pandas as pd
 
 from product_meta_analysis.database.database import Database
 from product_meta_analysis.utils import read_config
-from product_meta_analysis.collect.website_content import get_content
+from product_meta_analysis.collect.recipe_cards import IngredientExtractor
+
+
+CONTENT_TYPE = 'recipe_card_ingredients'
+
+
+extractor = IngredientExtractor()
 
 def to_sql_domains(domains):
 	return '"' + '" or domain is "'.join(domains) + '"'
@@ -29,10 +36,11 @@ def get_matches(urls, match_terms):
 
 def get_content_(urls):
 	content = [
-		get_content(url)
+		[url[0], url[1], json.dumps(extractor.get_ingredients(url[1]))]
 		for url in urls
 		]
-	content = pd.DataFrame(content, columns=['url_id', 'url', 'body'])
+	content = pd.DataFrame(content, columns=['url_id', 'url', 'content'])
+	content['content_type'] = CONTENT_TYPE
 	content['process_datetime'] = datetime.datetime.now()
 	content['process_date'] = datetime.date.today()
 	return content

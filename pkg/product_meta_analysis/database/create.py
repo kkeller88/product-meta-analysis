@@ -68,10 +68,11 @@ def create_website_content_table(db):
     query = f""" CREATE TABLE IF NOT EXISTS {table_name} (
         url_id text PRIMARY KEY,
         url text,
-        body text,
+        content text,
+        content_type text,
         process_datetime timestamp,
         process_date date,
-        UNIQUE(url_id)
+        UNIQUE(url_id, content_type)
         )"""
     db.write(query)
 
@@ -83,6 +84,7 @@ def create_website_annotation_table(db):
         pass
     query = f""" CREATE TABLE IF NOT EXISTS {table_name} (
         url_id text PRIMARY KEY,
+        content_type text,
         sentence_ix int,
         brand text,
         brand_id int,

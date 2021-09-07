@@ -4,9 +4,6 @@ import requests
 from bs4 import BeautifulSoup
 
 
-def get_content(urls):
-    return ['id', 'url', 'This is a test']
-
 class IngredientExtractor:
     def __init__(self):
         pass
@@ -16,6 +13,7 @@ class IngredientExtractor:
         soup = BeautifulSoup(rqst, 'html.parser')
         ingredients = self._get_ingredient_div(soup)
         extract = self._extract_ingredients(ingredients)
+        return extract
 
     def _get_ingredient_div(self, soup):
         ingredients = soup.findAll('div', class_=re.compile('ingredients'))
@@ -54,8 +52,3 @@ class IngredientExtractor:
             unit = x["data-unit"] if x.get("data-unit", None) is not None else None
             extract.append({'name': name, 'amount':amount, 'unit': unit})
         return extract
-
-url = "https://cookieandkate.com/spicy-squash-soup-recipe/"
-url = "https://aglutenfreeplate.com/gluten-free-pretzel-bites/"
-
-IngredientExtractor().get_ingredients(url)
