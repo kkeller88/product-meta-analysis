@@ -8,9 +8,6 @@ from product_meta_analysis.utils import read_config
 from product_meta_analysis.collect.recipe_cards import IngredientExtractor
 
 
-CONTENT_TYPE = 'recipe_card_ingredients'
-
-
 extractor = IngredientExtractor()
 
 def to_sql_domains(domains):
@@ -34,13 +31,20 @@ def get_matches(urls, match_terms):
 		]
 	return matches
 
-def get_content_(urls):
+def get_content_(urls, content_type):
+	def extract_url_content(url, content_type):
+		if content_type == 'recipe_card_ingredients':
+			content = json.dumps(extractor.get_ingredients(url))
+		else:
+			raise Exception('Content type not recognized!')
+		return content
+
 	content = [
-		[url[0], url[1], json.dumps(extractor.get_ingredients(url[1]))]
+		[url[0], url[1], extract_url_content(url[1], content_type)]
 		for url in urls
 		]
 	content = pd.DataFrame(content, columns=['url_id', 'url', 'content'])
-	content['content_type'] = CONTENT_TYPE
+	content['content_type'] = content_type
 	content['process_datetime'] = datetime.datetime.now()
 	content['process_date'] = datetime.date.today()
 	return content
@@ -62,9 +66,11 @@ config_name = 'example'
 config = read_config(config_type, config_name)
 domains = config.get('urls').get('domains')
 match_terms = config.get('content').get('match_terms')
+content_type = config.get('content').get('content_type')
 
 db = Database()
 urls = get_urls(db, domains)
 matches = get_matches(urls, match_terms)
-content = get_content_(matches)
+content = get_content_(matches, content_type)
+print(content['content'])
 save_content(content, db)
