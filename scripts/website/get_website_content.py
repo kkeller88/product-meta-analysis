@@ -10,14 +10,15 @@ from product_meta_analysis.collect.recipe_cards import IngredientExtractor
 
 extractor = IngredientExtractor()
 
-def to_sql_domains(domains):
-	return '"' + '" or domain is "'.join(domains) + '"'
+def condition_to_sql(values, on='domain'):
+	return '"' + f'" or {on} is "'.join(values) + '"'
 
-def get_urls(db, domains):
+def get_urls(db, domains, manual_urls):
 	query = f"""
 		select url_id, url
 		from website_urls
-		where (domain is {to_sql_domains(domains)})
+		where (domain is {condition_to_sql(domains)})
+			or (url is {condition_to_sql(manual_urls, on="url")})
 		"""
 	urls = db.read(query)
 	return urls
@@ -65,12 +66,12 @@ config_type = 'website_content'
 config_name = 'example'
 config = read_config(config_type, config_name)
 domains = config.get('urls').get('domains')
+manual_urls = config.get('urls').get('urls')
 match_terms = config.get('content').get('match_terms')
 content_type = config.get('content').get('content_type')
 
 db = Database()
-urls = get_urls(db, domains)
+urls = get_urls(db, domains, manual_urls)
 matches = get_matches(urls, match_terms)
 content = get_content_(matches, content_type)
-print(content['content'])
 save_content(content, db)
