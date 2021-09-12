@@ -52,7 +52,7 @@ def save_urls(data, database):
     db.drop('tmp')
 
 config_type = 'website_content'
-config_name = 'example'
+config_name = 'example_'
 config = read_config(config_type, config_name)
 domains = config.get('urls').get('domains')
 manual_urls = config.get('urls').get('urls')

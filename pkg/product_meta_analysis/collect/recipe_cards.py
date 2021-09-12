@@ -11,16 +11,19 @@ class IngredientExtractor:
     def get_ingredients(self, url):
         rqst = requests.get(url).text
         soup = BeautifulSoup(rqst, 'html.parser')
-        ingredients = self._get_ingredient_div(soup)
-        extract = self._extract_ingredients(ingredients)
-        return extract
+        try:
+            ingredients = self._get_ingredient_div(soup)
+            extract = self._extract_ingredients(ingredients)
+            return extract
+        except Exception as e:
+            print(f'Skipped URL {url} because {e}')
 
     def _get_ingredient_div(self, soup):
         ingredients = soup.findAll('div', class_=re.compile('ingredients'))
         if len(ingredients) == 1:
             return ingredients[0]
         else:
-            raise Exception('Multiple ingredients divs found!')
+            raise Exception(f'Multiple ingredients divs found!')
 
     def _extract_ingredients(self, ingredients):
         if 'wprm-recipe' in ' '.join(ingredients["class"]):

@@ -4,33 +4,22 @@ import json
 import pandas as pd
 
 from product_meta_analysis.database.database import Database
-from product_meta_analysis.utils import read_config
+from product_meta_analysis.utils import read_config, condition_to_sql
 from product_meta_analysis.collect.recipe_cards import IngredientExtractor
 
 
 extractor = IngredientExtractor()
 
-def condition_to_sql(values, on='domain'):
-	return '"' + f'" or {on} is "'.join(values) + '"'
 
-def get_urls(db, domains, manual_urls):
+def get_urls(db, domains, manual_urls, match_terms):
 	query = f"""
 		select url_id, url
 		from website_urls
-		where (domain is {condition_to_sql(domains)})
-			or (url is {condition_to_sql(manual_urls, on="url")})
+		where (({condition_to_sql(domains)}) and ({condition_to_sql(match_terms, on="url", allow_like=True)}))
+			or ({condition_to_sql(manual_urls, on="url")})
 		"""
 	urls = db.read(query)
 	return urls
-
-def get_matches(urls, match_terms):
-	matches = [
-		(id, url)
-		for id, url in urls
-		for match_term in match_terms
-		if match_term in url
-		]
-	return matches
 
 def get_content_(urls, content_type):
 	def extract_url_content(url, content_type):
@@ -63,7 +52,7 @@ def save_content(data, db):
 
 
 config_type = 'website_content'
-config_name = 'example'
+config_name = 'example_'
 config = read_config(config_type, config_name)
 domains = config.get('urls').get('domains')
 manual_urls = config.get('urls').get('urls')
@@ -71,7 +60,6 @@ match_terms = config.get('content').get('match_terms')
 content_type = config.get('content').get('content_type')
 
 db = Database()
-urls = get_urls(db, domains, manual_urls)
-matches = get_matches(urls, match_terms)
+matches = get_urls(db, domains, manual_urls, match_terms)
 content = get_content_(matches, content_type)
 save_content(content, db)
