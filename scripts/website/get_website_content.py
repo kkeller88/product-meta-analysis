@@ -5,10 +5,10 @@ import pandas as pd
 
 from product_meta_analysis.database.database import Database
 from product_meta_analysis.utils import read_config, condition_to_sql
-from product_meta_analysis.collect.recipe_cards import IngredientExtractor
+from product_meta_analysis.collect.recipe_cards import *
 
 
-extractor = IngredientExtractor()
+extractor = IngredientExtractorBase()
 
 
 def get_urls(db, domains, manual_urls, match_terms):
@@ -62,4 +62,4 @@ content_type = config.get('content').get('content_type')
 db = Database()
 matches = get_urls(db, domains, manual_urls, match_terms)
 content = get_content_(matches, content_type)
-save_content(content, db)
+#save_content(content, db)
