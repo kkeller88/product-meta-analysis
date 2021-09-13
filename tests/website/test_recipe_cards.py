@@ -35,13 +35,12 @@ def test_recipe_card_selector_word_and_list(multiple_recipe_div_page):
     candidate = rs.select([multiple_recipe_div_page])
     assert "fake item 2" in candidate.text
 
-@pytest.mark.skip
 def test_ingredient_extractor_wprm():
     path = os.path.join(HTML_FIXTURE_PATH, 'ingredients_wprm.html')
     html = codecs.open(path, 'r', 'utf-8').read()
     ext = IngredientExtractor()
     bs = BeautifulSoup(html, 'html.parser')
-    output = ext._extract_ingredients_wprm(bs)
+    output = ext._extract_ingredients(bs)
     assert output[0].get('name') ==  'radicchio'
     assert output[0].get('amount') == '1'
     assert output[0].get('unit') == 'head'

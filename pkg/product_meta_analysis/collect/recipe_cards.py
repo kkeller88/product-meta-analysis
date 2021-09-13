@@ -55,6 +55,47 @@ class RecipeSelectorRuleLi(RecipeSelectorRuleBase):
         return candidates
 
 
+class IngredientExtractorEngine:
+    def __init__(self):
+        self._extractors = []
+
+    def set_next(self, next_extractor):
+        self._extractors.extend(next_extractor)
+
+    def extract(self, recipe):
+        for extractor in self._extractors:
+            is_correct_format = extractor.check_correct_format(recipe)
+            print(is_correct_format)
+            if is_correct_format:
+                ingredients = extractor.extract_data(recipe)
+                return ingredients
+
+class IngredientExtractorRuleBase:
+    def __init__(self):
+        pass
+
+    @abstractmethod
+    def check_correct_format(self, recipe):
+        return False
+
+    @abstractmethod
+    def extract_data(self, recipe):
+        return recipe
+
+class IngredientExtractorRuleWPRM:
+    def check_correct_format(self, recipe):
+        li_class = recipe.find('li')["class"][0]
+        return True if 'wprm-recipe' in li_class else False
+
+    def extract_data(self, recipe):
+        extract = []
+        for x in recipe.findAll('li'):
+            name = get_span_item(x, "wprm-recipe-ingredient-name")
+            amount = get_span_item(x, "wprm-recipe-ingredient-amount")
+            unit = get_span_item(x, "wprm-recipe-ingredient-unit")
+            extract.append({'name': name, 'amount':amount, 'unit': unit})
+        return extract
+
 
 # TODO: A lot of this needs to be generalized
 class IngredientExtractor:
@@ -81,23 +122,14 @@ class IngredientExtractor:
         candidate = rs.select([soup])
         return candidate
 
-    def _extract_ingredients(self, ingredients):
-        if 'wprm-recipe' in ' '.join(ingredients["class"]):
-            extract = self._extract_ingredients_wprm(ingredients)
-        elif 'tasty-recipe' in ' '.join(ingredients["class"]):
-            extract = self._extract_ingredients_tasty(ingredients)
-        else:
-            raise Exception ('Recipe card format not recognized!')
-        return extract
-
-    def _extract_ingredients_wprm(self, ingredients):
-        extract = []
-        for x in ingredients.findAll('li'):
-            name = get_span_item(x, "wprm-recipe-ingredient-name")
-            amount = get_span_item(x, "wprm-recipe-ingredient-amount")
-            unit = get_span_item(x, "wprm-recipe-ingredient-unit")
-            extract.append({'name': name, 'amount':amount, 'unit': unit})
-        return extract
+    def _extract_ingredients(self, recipe):
+        extractors = [
+            IngredientExtractorRuleWPRM()
+            ]
+        ex = IngredientExtractorEngine()
+        ex.set_next(extractors)
+        ingredients = ex.extract(recipe)
+        return ingredients
 
     def _extract_ingredients_tasty(self, ingredients):
         extract = []
@@ -118,5 +150,5 @@ class IngredientExtractor:
         return extract
 
 def get_span_item(span, item_name):
-    item = x.find("span", class_=item_name)
+    item = span.find("span", class_=item_name)
     return item.text if item is not None else None
