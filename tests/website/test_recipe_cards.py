@@ -45,6 +45,7 @@ def test_ingredient_extractor_wprm():
     assert output[0].get('name') ==  'radicchio'
     assert output[0].get('amount') == '1'
     assert output[0].get('unit') == 'head'
+    assert output[0].get('full_text') == '1 head radicchio'
 
 def test_ingredient_extractor_tasty():
     path = os.path.join(HTML_FIXTURE_PATH, 'ingredients_tasty.html')

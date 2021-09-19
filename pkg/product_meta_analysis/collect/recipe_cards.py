@@ -92,7 +92,13 @@ class IngredientExtractorRuleWPRM:
             name = get_span_item(x, "wprm-recipe-ingredient-name")
             amount = get_span_item(x, "wprm-recipe-ingredient-amount")
             unit = get_span_item(x, "wprm-recipe-ingredient-unit")
-            extract.append({'name': name, 'amount':amount, 'unit': unit})
+            full_text = x.text
+            extract.append({
+                'name': name,
+                'amount':amount,
+                'unit': unit,
+                'full_text':full_text
+                })
         return extract
 
 class IngredientExtractorRuleTasty:
