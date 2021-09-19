@@ -4,7 +4,7 @@ import re
 import requests
 
 from bs4 import BeautifulSoup
-
+from bs4.element import NavigableString
 
 class RecipeCardSelector:
     def __init__(self):
@@ -55,7 +55,7 @@ class RecipeSelectorRuleLi(RecipeSelectorRuleBase):
         return candidates
 
 
-class IngredientExtractorEngine:
+class IngredientExtractor:
     def __init__(self):
         self._extractors = []
 
@@ -65,7 +65,6 @@ class IngredientExtractorEngine:
     def extract(self, recipe):
         for extractor in self._extractors:
             is_correct_format = extractor.check_correct_format(recipe)
-            print(is_correct_format)
             if is_correct_format:
                 ingredients = extractor.extract_data(recipe)
                 return ingredients
@@ -84,8 +83,8 @@ class IngredientExtractorRuleBase:
 
 class IngredientExtractorRuleWPRM:
     def check_correct_format(self, recipe):
-        li_class = recipe.find('li')["class"][0]
-        return True if 'wprm-recipe' in li_class else False
+        class_ = recipe.find('div')["class"][0]
+        return True if 'wprm' in class_ else False
 
     def extract_data(self, recipe):
         extract = []
@@ -96,57 +95,38 @@ class IngredientExtractorRuleWPRM:
             extract.append({'name': name, 'amount':amount, 'unit': unit})
         return extract
 
+class IngredientExtractorRuleTasty:
+    def check_correct_format(self, recipe):
+        class_ = recipe.find('div')["class"][0]
+        return True if 'tasty-recipe' in class_ else False
 
-# TODO: A lot of this needs to be generalized
-class IngredientExtractor:
-    def __init__(self):
-        pass
-
-    def get_ingredients(self, url):
-        rqst = requests.get(url).text
-        soup = BeautifulSoup(rqst, 'html.parser')
-        try:
-            ingredients = self._get_ingredient_div(soup)
-            extract = self._extract_ingredients(ingredients)
-            return extract
-        except Exception as e:
-            print(f'Skipped URL {url} because {e}')
-
-    def _get_ingredient_div(self, soup):
-        selectors = [
-            RecipeSelectorRuleWord(word='fake-recipe'),
-            RecipeSelectorRuleLi()
-            ]
-        rs = RecipeCardSelector()
-        rs.set_next(selectors)
-        candidate = rs.select([soup])
-        return candidate
-
-    def _extract_ingredients(self, recipe):
-        extractors = [
-            IngredientExtractorRuleWPRM()
-            ]
-        ex = IngredientExtractorEngine()
-        ex.set_next(extractors)
-        ingredients = ex.extract(recipe)
-        return ingredients
-
-    def _extract_ingredients_tasty(self, ingredients):
+    # NOTE: assumes you only have a unit if you have an amount
+    def extract_data(self, recipe):
         extract = []
-        for x in ingredients.findAll('li'):
-            name = x.contents[-1]
-            amount = x["data-amount"] if x.get("data-amount", None) is not None else None
-            unit = x["data-unit"] if x.get("data-unit", None) is not None else None
-            extract.append({'name': name, 'amount':amount, 'unit': unit})
-        return extract
-
-    def _extract_ingredients_general(self, ingredients):
-        extract = []
-        for x in ingredients.findAll('li'):
-            name = get_span_item(x, "wprm-recipe-ingredient-name")
-            amount = get_span_item(x, "wprm-recipe-ingredient-amount")
-            unit = get_span_item(x, "wprm-recipe-ingredient-unit")
-            extract.append({'name': name, 'amount':amount, 'unit': unit})
+        for x in recipe.findAll('li'):
+            amount_span = x.find("span", {'data-amount':True})
+            if amount_span:
+                name = "".join([
+                        t if type(t)==NavigableString
+                        else '#'
+                        for t in x.find("span").contents
+                        ]) \
+                    .strip() \
+                    .strip('#') \
+                    .strip()
+                amount = amount_span.get('data-amount')
+                unit = amount_span.get('data-unit', None)
+            else:
+                name = x.text
+                amount = None
+                unit = None
+            full_text = x.text
+            extract.append({
+                'name': name,
+                'amount':amount,
+                'unit': unit,
+                'full_text': full_text
+                })
         return extract
 
 def get_span_item(span, item_name):
