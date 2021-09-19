@@ -8,8 +8,6 @@ from product_meta_analysis.utils import read_config, condition_to_sql
 from product_meta_analysis.collect.recipe_cards import *
 
 
-extractor = IngredientExtractorBase()
-
 
 def get_urls(db, domains, manual_urls, match_terms):
 	query = f"""
@@ -22,15 +20,25 @@ def get_urls(db, domains, manual_urls, match_terms):
 	return urls
 
 def get_content_(urls, content_type):
-	def extract_url_content(url, content_type):
-		if content_type == 'recipe_card_ingredients':
-			content = json.dumps(extractor.get_ingredients(url))
-		else:
-			raise Exception('Content type not recognized!')
+	def build_recipe_card_parser():
+		s = [
+			RecipeSelectorRuleWord(word='wprm-recipe-ingredients'),
+			RecipeSelectorRuleLi(),
+			]
+		e = [
+			IngredientExtractorRuleWPRM(),
+			IngredientExtractorRuleTasty(),
+			]
+		parser = RecipeCardParser(selector_rules=s, extractor_rules=e)
+		return parser
+
+	def extract_url_content(url, parser):
+		content = json.dumps(parser.parse(url))
 		return content
 
+	parser = build_recipe_card_parser()
 	content = [
-		[url[0], url[1], extract_url_content(url[1], content_type)]
+		[url[0], url[1], extract_url_content(url[1], parser)]
 		for url in urls
 		]
 	content = pd.DataFrame(content, columns=['url_id', 'url', 'content'])
@@ -49,8 +57,6 @@ def save_content(data, db):
     db.write('INSERT OR IGNORE INTO website_content SELECT * FROM tmp')
     db.drop('tmp')
 
-
-
 config_type = 'website_content'
 config_name = 'example_'
 config = read_config(config_type, config_name)
@@ -62,4 +68,4 @@ content_type = config.get('content').get('content_type')
 db = Database()
 matches = get_urls(db, domains, manual_urls, match_terms)
 content = get_content_(matches, content_type)
-#save_content(content, db)
+save_content(content, db)
