@@ -6,6 +6,26 @@ import requests
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString
 
+
+class RecipeCardParser:
+    def __init__(self, selector_rules, extractor_rules):
+        self.sel = RecipeCardSelector()
+        self.ext = IngredientExtractor()
+        self.sel.set_next(selector_rules)
+        self.ext.set_next(extractor_rules)
+
+    def get_page(self, url):
+        rqst = requests.get(url).text
+        soup = BeautifulSoup(rqst, 'html.parser')
+        return soup
+
+    def parse(self, url=None, page=None):
+        if not page:
+            page = self.get_page(url)
+        recipe_card = self.sel.select([page])
+        ingredients = self.ext.extract(recipe_card)
+        return ingredients
+
 class RecipeCardSelector:
     def __init__(self):
         self._selectors = []

@@ -68,3 +68,13 @@ def test_ingredient_extractor_tasty_bug():
     output = ext.extract(bs)
     assert output[0].get('amount') == '1'
     assert 'tablespoon' in output[0].get('name')
+
+def test_recipe_card_parser(multiple_recipe_div_page):
+    path = os.path.join(HTML_FIXTURE_PATH, 'full_WPRM_page.html')
+    html = codecs.open(path, 'r', 'utf-8').read()
+    page = BeautifulSoup(html, 'html.parser')
+    s = [RecipeSelectorRuleWord(word='wprm-recipe-ingredients')]
+    e = [IngredientExtractorRuleWPRM()]
+    parser = RecipeCardParser(selector_rules=s, extractor_rules=e)
+    output = parser.parse(page=page)
+    assert output[0].get('full_text') == '1 head radicchio'
