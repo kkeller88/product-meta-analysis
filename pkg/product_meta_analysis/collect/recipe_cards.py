@@ -16,6 +16,7 @@ class RecipeCardParser:
 
     def get_page(self, url):
         rqst = requests.get(url).text
+        #print(rqst)
         soup = BeautifulSoup(rqst, 'html.parser')
         return soup
 
@@ -23,6 +24,7 @@ class RecipeCardParser:
         if not page:
             page = self.get_page(url)
         recipe_card = self.sel.select([page])
+        #print(recipe_card)
         ingredients = self.ext.extract(recipe_card)
         return ingredients
 
@@ -91,20 +93,28 @@ class IngredientExtractor:
 
 class IngredientExtractorRuleBase:
     def __init__(self):
-        pass
+        self.class_keyword = None
 
-    @abstractmethod
     def check_correct_format(self, recipe):
-        return False
+        try:
+            div = recipe.find('div')
+            if div:
+                classes = div.get("class")
+            else:
+                classes = recipe.get("class")
+            return True if any([self.class_keyword in x for x in classes]) else False
+        except:
+            print("FALLLLLZ")
+            print(recipe.find('div'))
+            return False
 
     @abstractmethod
     def extract_data(self, recipe):
         return recipe
 
-class IngredientExtractorRuleWPRM:
-    def check_correct_format(self, recipe):
-        class_ = recipe.find('div')["class"][0]
-        return True if 'wprm' in class_ else False
+class IngredientExtractorRuleWPRM(IngredientExtractorRuleBase):
+    def __init__(self):
+        self.class_keyword = 'wprm'
 
     def extract_data(self, recipe):
         extract = []
@@ -121,10 +131,9 @@ class IngredientExtractorRuleWPRM:
                 })
         return extract
 
-class IngredientExtractorRuleTasty:
-    def check_correct_format(self, recipe):
-        class_ = recipe.find('div')["class"][0]
-        return True if 'tasty-recipe' in class_ else False
+class IngredientExtractorRuleTasty(IngredientExtractorRuleBase):
+    def __init__(self):
+        self.class_keyword = 'tasty-recipe'
 
     # NOTE: assumes you only have a unit if you have an amount
     def extract_data(self, recipe):
@@ -155,6 +164,29 @@ class IngredientExtractorRuleTasty:
                 })
         return extract
 
-def get_span_item(span, item_name):
-    item = span.find("span", class_=item_name)
+class IngredientExtractorRuleSrsEats(IngredientExtractorRuleBase):
+    # TODO: generalize this
+    def __init__(self):
+        self.class_keyword = 'structured-ingredients'
+
+    def extract_data(self, recipe):
+        extract = []
+        for x in recipe.findAll('li'):
+            name = get_span_item(x, {"data-ingredient-name":"true"},'attribute')
+            amount = get_span_item(x, {"data-ingredient-quantity":"true"}, 'attribute')
+            unit = get_span_item(x, {"data-ingredient-unit":"true"}, 'attribute')
+            full_text = x.text
+            extract.append({
+                'name': name,
+                'amount':amount,
+                'unit': unit,
+                'full_text':full_text
+                })
+        return extract
+
+def get_span_item(span, item_name, item_type='class'):
+    if item_type == 'class':
+        item = span.find("span", class_=item_name)
+    elif item_type == 'attribute':
+        item = span.find("span", item_name)
     return item.text if item is not None else None

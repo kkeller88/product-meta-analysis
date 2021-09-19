@@ -58,6 +58,17 @@ def test_ingredient_extractor_tasty():
     assert output[8].get('amount') == '0.5'
     assert output[8].get('unit') == 'teaspoon'
 
+def test_ingredient_extractor_srseats():
+    url = 'https://www.seriouseats.com/ingredient-stovetop-mac-and-cheese-recipe'
+    s = [RecipeSelectorRuleWord(word='structured-ingredients')]
+    e = [IngredientExtractorRuleSrsEats()]
+    parser = RecipeCardParser(selector_rules=s, extractor_rules=e)
+    output = parser.parse(url=url)
+    assert output[0].get('name') ==  'elbow macaroni'
+    assert output[0].get('amount') == '6'
+    assert output[0].get('unit') == 'ounces'
+
+
 @pytest.mark.skip('I think this was just entered wrong, but should double check')
 def test_ingredient_extractor_tasty_bug():
     path = os.path.join(HTML_FIXTURE_PATH, 'ingredients_tasty.html')
@@ -78,3 +89,20 @@ def test_recipe_card_parser(multiple_recipe_div_page):
     parser = RecipeCardParser(selector_rules=s, extractor_rules=e)
     output = parser.parse(page=page)
     assert output[0].get('full_text') == '1 head radicchio'
+
+def test_dev(multiple_recipe_div_page):
+    # wprm-recipe-ingredients: WPRM
+    # structured-ingredients: seriouseats
+    url = 'https://www.seriouseats.com/ingredient-stovetop-mac-and-cheese-recipe'
+    s = [
+        RecipeSelectorRuleWord(word='wprm-recipe-ingredients|structured-ingredients'),
+        RecipeSelectorRuleLi(),
+        ]
+    e = [
+        IngredientExtractorRuleWPRM(),
+        IngredientExtractorRuleTasty(),
+        IngredientExtractorRuleSrsEats()
+        ]
+    parser = RecipeCardParser(selector_rules=s, extractor_rules=e)
+    output = parser.parse(url=url)
+    #assert output[0].get('full_text') == '1 head radicchio'
