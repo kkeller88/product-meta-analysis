@@ -1,10 +1,13 @@
 from abc import abstractmethod
 import itertools
+import json
 import re
 import requests
 
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString
+
+from product_meta_analysis.collect.schema import unpack_recipe_schema
 
 
 class RecipeCardParser:
@@ -24,7 +27,6 @@ class RecipeCardParser:
         if not page:
             page = self.get_page(url)
         recipe_card = self.sel.select([page])
-        #print(recipe_card)
         ingredients = self.ext.extract(recipe_card)
         return ingredients
 
@@ -76,6 +78,19 @@ class RecipeSelectorRuleLi(RecipeSelectorRuleBase):
             ]
         return candidates
 
+class RecipeSelectorRuleSchema(RecipeSelectorRuleBase):
+    # NOTE: assumes only one candidate passed!
+    def make_selection(self, candidates):
+        def check_single_candidate(candidates):
+            if len(candidates) > 1:
+                raise ValueError('RecipeSelectorRuleSchema can only parse single item lists')
+
+        check_single_candidate(candidates)
+        scripts = candidates[0].findAll("script", type='application/ld+json')
+        scripts = [json.loads(x.string) for x in scripts]
+        recipe_schema = unpack_recipe_schema(scripts)
+        return recipe_schema
+
 
 class IngredientExtractor:
     def __init__(self):
@@ -97,15 +112,13 @@ class IngredientExtractorRuleBase:
 
     def check_correct_format(self, recipe):
         try:
+            classes = recipe.get("class") or []
             div = recipe.find('div')
             if div:
-                classes = div.get("class")
-            else:
-                classes = recipe.get("class")
+                additional_classes = div.get("class") or []
+                classes.extend(additional_classes)
             return True if any([self.class_keyword in x for x in classes]) else False
         except:
-            print("FALLLLLZ")
-            print(recipe.find('div'))
             return False
 
     @abstractmethod
@@ -165,7 +178,6 @@ class IngredientExtractorRuleTasty(IngredientExtractorRuleBase):
         return extract
 
 class IngredientExtractorRuleSrsEats(IngredientExtractorRuleBase):
-    # TODO: generalize this
     def __init__(self):
         self.class_keyword = 'structured-ingredients'
 
@@ -184,9 +196,50 @@ class IngredientExtractorRuleSrsEats(IngredientExtractorRuleBase):
                 })
         return extract
 
-def get_span_item(span, item_name, item_type='class'):
+class IngredientExtractorRuleNYT(IngredientExtractorRuleBase):
+    def __init__(self):
+        self.class_keyword = 'recipe-instructions'
+
+    def extract_data(self, recipe):
+        extract = []
+        recipe = recipe.find("ul")
+        for x in recipe.findAll('li'):
+            name = strip_excess_whitespace(get_span_item(x, "ingredient-name"))
+            amount = strip_excess_whitespace(get_span_item(x, "quantity"))
+            unit = None
+            full_text = strip_excess_whitespace(x.text)
+            extract.append({
+                'name': name,
+                'amount':amount,
+                'unit': unit,
+                'full_text':full_text
+                })
+        return extract
+
+class IngredientExtractorRuleSchema:
+    def check_correct_format(self, recipe):
+        return True # isinstance(recipe, list)
+
+    def extract_data(self, recipe):
+        ingredients = recipe.get('recipeIngredient')
+        ingredients = [
+            {
+                'name': None,
+                'amount': None,
+                'unit': None,
+                'full_text': strip_excess_whitespace(x)
+                }
+            for x in ingredients]
+        return ingredients
+
+def get_span_item(span, item_value, item_type='class'):
     if item_type == 'class':
-        item = span.find("span", class_=item_name)
+        item = span.find("span", class_=item_value)
     elif item_type == 'attribute':
-        item = span.find("span", item_name)
+        item = span.find("span", item_value)
     return item.text if item is not None else None
+
+def strip_excess_whitespace(x):
+    x = re.sub('\n', ' ', x)
+    x = re.sub('\s+', ' ', x)
+    return x.lstrip('<p>').rstrip('</p>').strip()

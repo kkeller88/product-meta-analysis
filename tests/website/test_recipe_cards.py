@@ -68,6 +68,15 @@ def test_ingredient_extractor_srseats():
     assert output[0].get('amount') == '6'
     assert output[0].get('unit') == 'ounces'
 
+def test_ingredient_extractor_nyt():
+    url = "https://cooking.nytimes.com/recipes/1020515-southern-macaroni-and-cheese"
+    s = [RecipeSelectorRuleWord(word='recipe-instructions'),]
+    e = [IngredientExtractorRuleNYT()]
+    parser = RecipeCardParser(selector_rules=s, extractor_rules=e)
+    output = parser.parse(url=url)
+    assert output[1].get('name') == 'pound elbow macaroni'
+    assert output[1].get('amount') == '1'
+    assert output[1].get('full_text') == '1 pound elbow macaroni'
 
 @pytest.mark.skip('I think this was just entered wrong, but should double check')
 def test_ingredient_extractor_tasty_bug():
@@ -90,19 +99,26 @@ def test_recipe_card_parser(multiple_recipe_div_page):
     output = parser.parse(page=page)
     assert output[0].get('full_text') == '1 head radicchio'
 
-def test_dev(multiple_recipe_div_page):
-    # wprm-recipe-ingredients: WPRM
-    # structured-ingredients: seriouseats
-    url = 'https://www.seriouseats.com/ingredient-stovetop-mac-and-cheese-recipe'
-    s = [
-        RecipeSelectorRuleWord(word='wprm-recipe-ingredients|structured-ingredients'),
-        RecipeSelectorRuleLi(),
-        ]
-    e = [
-        IngredientExtractorRuleWPRM(),
-        IngredientExtractorRuleTasty(),
-        IngredientExtractorRuleSrsEats()
-        ]
+def test_schema_foodnetwork():
+    url = "https://www.foodnetwork.com/recipes/ree-drummond/macaroni-and-cheese-recipe-1952854"
+    s = [RecipeSelectorRuleSchema()]
+    e = [IngredientExtractorRuleSchema()]
     parser = RecipeCardParser(selector_rules=s, extractor_rules=e)
     output = parser.parse(url=url)
-    #assert output[0].get('full_text') == '1 head radicchio'
+    assert output[0].get('full_text') == '4 cups dried macaroni'
+
+def test_schema_fooddotcom():
+    url = "https://www.food.com/recipe/easy-stove-top-macaroni-cheese-60350"
+    s = [RecipeSelectorRuleSchema()]
+    e = [IngredientExtractorRuleSchema()]
+    parser = RecipeCardParser(selector_rules=s, extractor_rules=e)
+    output = parser.parse(url=url)
+    assert output[0].get('full_text') == '16 ounces elbow macaroni'
+
+def test_schema_food_thechunkychef():
+    url = "https://www.thechunkychef.com/family-favorite-baked-mac-and-cheese/"
+    s = [RecipeSelectorRuleSchema()]
+    e = [IngredientExtractorRuleSchema()]
+    parser = RecipeCardParser(selector_rules=s, extractor_rules=e)
+    output = parser.parse(url=url)
+    assert output[0].get('full_text') == '1 lb. dried elbow pasta'

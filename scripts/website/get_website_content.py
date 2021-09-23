@@ -21,14 +21,8 @@ def get_urls(db, domains, manual_urls, match_terms):
 
 def get_content_(urls, content_type):
 	def build_recipe_card_parser():
-		s = [
-			RecipeSelectorRuleWord(word='wprm-recipe-ingredients'),
-			RecipeSelectorRuleLi(),
-			]
-		e = [
-			IngredientExtractorRuleWPRM(),
-			IngredientExtractorRuleTasty(),
-			]
+		s = [RecipeSelectorRuleSchema()]
+		e = [IngredientExtractorRuleSchema()]
 		parser = RecipeCardParser(selector_rules=s, extractor_rules=e)
 		return parser
 
@@ -58,7 +52,7 @@ def save_content(data, db):
     db.drop('tmp')
 
 config_type = 'website_content'
-config_name = 'example_'
+config_name = 'example'
 config = read_config(config_type, config_name)
 domains = config.get('urls').get('domains')
 manual_urls = config.get('urls').get('urls')
