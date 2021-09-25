@@ -85,6 +85,7 @@ def create_website_annotation_table(db):
     query = f""" CREATE TABLE IF NOT EXISTS {table_name} (
         url_id text,
         content_type text,
+        category text,
         sentence_ix int,
         annotation text,
         annotation_ix int,

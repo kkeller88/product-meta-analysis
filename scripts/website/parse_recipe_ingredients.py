@@ -38,14 +38,15 @@ def get_matches(data, match_terms):
         ]
     return data
 
-def format_data(data, match_terms):
-    cols = ['url_id', 'content_type', 'sentence_ix', 'annotation',
+def format_data(data, match_terms, category):
+    cols = ['url_id', 'content_type', 'category', 'sentence_ix', 'annotation',
         'annotation_ix', 'sentiment', 'annotation_id', 'process_datetime',
         'process_date']
     data = data \
         .explode('matched_ingredients') \
         .rename(columns={'matched_ingredients':'annotation'})
     data['sentiment'] = 'None'
+    data['category'] = category
     data['sentence_ix'] = 0
     match_indicies = {x:ix for ix, x in enumerate(match_terms)}
     data['annotation_ix'] = data['annotation'].map(match_indicies)
@@ -72,10 +73,11 @@ config_type = 'website_content'
 config_name = 'example'
 config = read_config(config_type, config_name)
 ingredients = config.get('match').get('ingredients')
+category = config.get('match').get('category')
 
 db = Database()
 data = get_data(db)
 matches = get_matches(data, ingredients)
-formatted = format_data(matches, ingredients)
+formatted = format_data(matches, ingredients, category)
 save_data(formatted, db)
 db.close()
