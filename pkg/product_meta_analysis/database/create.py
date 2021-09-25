@@ -83,14 +83,15 @@ def create_website_annotation_table(db):
     except:
         pass
     query = f""" CREATE TABLE IF NOT EXISTS {table_name} (
-        url_id text PRIMARY KEY,
+        url_id text,
         content_type text,
         sentence_ix int,
-        brand text,
-        brand_id int,
+        annotation text,
+        annotation_ix int,
     	sentiment text,
         annotation_id text PRIMARY KEY,
         process_datetime timestamp,
         process_date date,
         UNIQUE(annotation_id)
         )"""
+    db.write(query)

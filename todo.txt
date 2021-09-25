@@ -1,2 +1,8 @@
 * Test out parsing on all domains we pulled
-* Fix tastyrecipe test
+* Improved ingredient / brand parsing
+*   Automatically detect frequently occurring ingredients
+*   Classify ingredients
+*   Traverse hierarchy of ingredients
+*   Classify ingredients at different levels (ex. cheese --> cheddar)
+*   Automatically separate out ingredients, unit, amount
+*   Automatically detect recipe in html
