@@ -10,27 +10,27 @@ font = {'family' : 'Verdana',
 plt.rc('font', **font)
 
 
-def bin_long_tail(brand_summary, count_threshold, column):
+def bin_long_tail(brand_summary, count_threshold, column, name_column):
     df_ = brand_summary.copy()
     above_threshold = df_[df_[column] >= count_threshold]
     below_threshold = df_[df_[column] < count_threshold]
     binned = pd.concat([
-            above_threshold[['Brand', column]],
+            above_threshold[[name_column, column]],
             pd.DataFrame(
                 [['Other', int(below_threshold[column].sum())]],
-                columns=['Brand', column]
+                columns=[name_column, column]
                 )
         ])
     return binned
 
-def create_pie_chart(brand_summary, count_threshold = 3, column='Total Votes'):
-    votes_binned = bin_long_tail(brand_summary, count_threshold, column)
+def create_pie_chart(brand_summary, count_threshold = 3, name_column='Brand', column='Total Votes'):
+    votes_binned = bin_long_tail(brand_summary, count_threshold, column, name_column)
     n = len(votes_binned)
 
     fig, ax = plt.subplots()
     ax.pie(
         votes_binned[column],
-        labels=votes_binned['Brand'],
+        labels=votes_binned[name_column],
         colors=DEFAULT_COLORS[0:n],
         startangle=90,
         labeldistance=1.2,
@@ -41,13 +41,13 @@ def create_pie_chart(brand_summary, count_threshold = 3, column='Total Votes'):
     plt.title(column, pad=40)
     plt.show()
 
-def create_bar_chart(brand_summary, count_threshold = 3, column='Total Votes'):
-    votes_binned = bin_long_tail(brand_summary, count_threshold, column)
+def create_bar_chart(brand_summary, count_threshold = 3, column='Total Votes', name_column='Brand'):
+    votes_binned = bin_long_tail(brand_summary, count_threshold, column, name_column)
     n = len(votes_binned)
 
     fig, ax = plt.subplots()
     ax.barh(
-        votes_binned['Brand'],
+        votes_binned[name_column],
         votes_binned[column],
         color=DEFAULT_COLORS[0:n],
         )
