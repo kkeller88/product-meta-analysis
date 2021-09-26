@@ -12,7 +12,7 @@ plt.rc('font', **font)
 
 def bin_long_tail(brand_summary, count_threshold, column, name_column):
     df_ = brand_summary.copy()
-    above_threshold = df_[df_[column] >= count_threshold]
+    above_threshold = df_[df_[column] >= count_threshold].sort_values(column, ascending=False)
     below_threshold = df_[df_[column] < count_threshold]
     binned = pd.concat([
             above_threshold[[name_column, column]],
@@ -23,8 +23,11 @@ def bin_long_tail(brand_summary, count_threshold, column, name_column):
         ])
     return binned
 
-def create_pie_chart(brand_summary, count_threshold = 3, name_column='Brand', column='Total Votes'):
-    votes_binned = bin_long_tail(brand_summary, count_threshold, column, name_column)
+def create_pie_chart(brand_summary, count_threshold = 3, name_column='Brand', column='Total Votes', title=None):
+    if count_threshold:
+        votes_binned = bin_long_tail(brand_summary, count_threshold, column, name_column)
+    else:
+        votes_binned = brand_summary
     n = len(votes_binned)
 
     fig, ax = plt.subplots()
@@ -38,11 +41,17 @@ def create_pie_chart(brand_summary, count_threshold = 3, name_column='Brand', co
         wedgeprops = {"edgecolor":"k",'linewidth': 2, 'linestyle': 'solid', 'antialiased': True}
         )
     ax.axis('equal')
-    plt.title(column, pad=40)
+    if title:
+        plt.title(title, pad=40)
+    else:
+        plt.title(column, pad=40)
     plt.show()
 
-def create_bar_chart(brand_summary, count_threshold = 3, column='Total Votes', name_column='Brand'):
-    votes_binned = bin_long_tail(brand_summary, count_threshold, column, name_column)
+def create_bar_chart(brand_summary, count_threshold = None, column='Total Votes', name_column='Brand', title=None):
+    if count_threshold:
+        votes_binned = bin_long_tail(brand_summary, count_threshold, column, name_column)
+    else:
+        votes_binned = brand_summary
     n = len(votes_binned)
 
     fig, ax = plt.subplots()
@@ -52,5 +61,8 @@ def create_bar_chart(brand_summary, count_threshold = 3, column='Total Votes', n
         color=DEFAULT_COLORS[0:n],
         )
     ax.invert_yaxis()
-    plt.title(column, pad=40)
+    if title:
+        plt.title(title, pad=40)
+    else:
+        plt.title(column, pad=40)
     plt.show()

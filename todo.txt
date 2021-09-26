@@ -6,3 +6,4 @@
 *   Classify ingredients at different levels (ex. cheese --> cheddar)
 *   Automatically separate out ingredients, unit, amount
 *   Automatically detect recipe in html
+*   Include recipe rating as a factor --> what makes a recipe highly rated
