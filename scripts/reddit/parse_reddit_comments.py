@@ -4,7 +4,6 @@ import pandas as pd
 
 from product_meta_analysis.database.database import Database
 from product_meta_analysis.analyze import tokenize
-from product_meta_analysis.analyze import brands
 from product_meta_analysis.utils import read_config
 
 
@@ -63,7 +62,7 @@ def save_data(data, db):
         if_exists = 'append',
         index=False
         )
-    db.write('INSERT OR IGNORE INTO reddit_comment_annotations SELECT * FROM tmp')
+    db.write('INSERT OR IGNORE INTO website_content_annotations SELECT * FROM tmp')
     db.drop('tmp')
 
 
