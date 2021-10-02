@@ -122,3 +122,11 @@ def test_schema_food_thechunkychef():
     parser = RecipeCardParser(selector_rules=s, extractor_rules=e)
     output = parser.parse(url=url)
     assert output[0].get('full_text') == '1 lb. dried elbow pasta'
+
+def test_full_recipe_schema_foodnetwork():
+    url = "https://www.foodnetwork.com/recipes/ree-drummond/macaroni-and-cheese-recipe-1952854"
+    s = [RecipeSelectorRuleSchema()]
+    e = [RecipeExtractorRuleSchema()]
+    parser = RecipeCardParser(selector_rules=s, extractor_rules=e)
+    output = parser.parse(url=url)
+    assert output.get('rating').get('rating') <= 5

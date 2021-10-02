@@ -35,9 +35,18 @@ def schema_list():
             'ingredient_1',
             'ingredient_2',
             'ingredient_3',
-            ]
+            ],
+        'recipeInstructions': [
+            {'@type':'HowToStep','text':'Step 1'},
+            {'@type':'HowToStep','text':'Step 2'},
+            ],
+        'aggregateRating': {
+            '@type':'AggregateRating',
+            'ratingValue':1.0,
+            'reviewCount':100
+            }
         }]
-    return ;
+    return l
 
 @pytest.fixture
 def schema_graph():

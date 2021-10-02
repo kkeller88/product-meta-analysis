@@ -22,7 +22,7 @@ def get_urls(db, domains, manual_urls, match_terms):
 def get_content_(urls, content_type):
 	def build_recipe_card_parser():
 		s = [RecipeSelectorRuleSchema()]
-		e = [IngredientExtractorRuleSchema()]
+		e = [RecipeExtractorRuleSchema()]
 		parser = RecipeCardParser(selector_rules=s, extractor_rules=e)
 		return parser
 

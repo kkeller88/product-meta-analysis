@@ -21,7 +21,7 @@ def get_data(db):
     content = db.read(query)
     data = pd.DataFrame(content, columns=['url_id', 'content_type', 'content'])
     data['ingredients'] = [
-        [i.get('full_text') for i in json.loads(ingredients)]
+        [i.get('full_text') for i in json.loads(ingredients).get('ingredients')]
         for ingredients in data['content']
         ]
     return data

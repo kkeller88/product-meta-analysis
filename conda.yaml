@@ -4,5 +4,9 @@ dependencies:
   - pandas
   - numpy
   - pip
+  - pip:
     - requests
     - beautifulsoup4
+    - pytest
+    - pyyaml
+    - nltk
