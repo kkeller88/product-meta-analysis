@@ -7,3 +7,4 @@
 *   Automatically separate out ingredients, unit, amount
 *   Automatically detect recipe in html
 *   Include recipe rating as a factor --> what makes a recipe highly rated
+* Move appropriate imports from conda.yaml to package

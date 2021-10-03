@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import re
 
 import yaml
 
@@ -24,3 +25,8 @@ def condition_to_sql(values, on='domain', allow_like=False):
     else:
         statement = f'{on } is "' + f'" or {on} is "'.join(values) + '"'
     return statement
+
+def strip_excess_whitespace(x):
+    x = re.sub('\n', ' ', x)
+    x = re.sub('\s+', ' ', x)
+    return x.lstrip('<p>').rstrip('</p>').strip()

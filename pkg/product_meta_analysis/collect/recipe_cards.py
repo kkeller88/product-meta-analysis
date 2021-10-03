@@ -7,7 +7,9 @@ import requests
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString
 
-from product_meta_analysis.collect.schema import unpack_recipe_schema
+from product_meta_analysis.collect.schema import (unpack_recipe_schema,
+    extract_recipe_instructions, extract_recipe_ratings, extract_recipe_ingredients)
+from product_meta_analysis.utils import strip_excess_whitespace
 
 
 class RecipeCardParser:
@@ -221,16 +223,7 @@ class IngredientExtractorRuleSchema:
         return True # isinstance(recipe, list)
 
     def extract_data(self, recipe):
-        ingredients = recipe.get('recipeIngredient')
-        ingredients = [
-            {
-                'name': None,
-                'amount': None,
-                'unit': None,
-                'full_text': strip_excess_whitespace(x)
-                }
-            for x in ingredients]
-        return ingredients
+        return extract_recipe_ingredients(recipe) 
 
 class RecipeExtractorRuleSchema:
     def check_correct_format(self, recipe):
@@ -238,37 +231,14 @@ class RecipeExtractorRuleSchema:
 
     # TODO: Factor this out into multiple functions and harden the preprocessing logic
     def extract_data(self, recipe):
-        ingredients = recipe.get('recipeIngredient', [])
-        ingredients = [
-            {
-                'name': None,
-                'amount': None,
-                'unit': None,
-                'full_text': strip_excess_whitespace(x)
-                }
-            for x in ingredients
-            ]
-        rating = recipe.get('aggregateRating', {})
-        rating = rating[0] if isinstance(rating, list) else rating
-        rating = {
-            'rating': rating.get('ratingValue', None),
-            'rating_count': rating.get('reviewCount', None)
-            }
-        instructions = recipe.get('recipeInstructions', [])
-        if isinstance(instructions, str):
-            instructions = [{'text': instructions}]
-        elif isinstance(instructions[0], list):
-            instructions = instructions[0]
-        instructions = [
-            x.get('text', None)
-            for x in instructions
-            ]
+        ingredients = extract_recipe_ingredients(recipe)
+        rating = extract_recipe_ratings(recipe)
+        instructions = extract_recipe_instructions(recipe)
         return {
             'ingredients': ingredients,
             'rating': rating,
             'instructions': instructions
             }
-
 
 def get_span_item(span, item_value, item_type='class'):
     if item_type == 'class':

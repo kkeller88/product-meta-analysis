@@ -1,5 +1,7 @@
 import itertools
+from product_meta_analysis.utils import strip_excess_whitespace
 
+# unpack schema
 def unpack_list_of_lists(l):
     if isinstance(l[0], list):
         return list(itertools.chain.from_iterable(l))
@@ -42,3 +44,45 @@ def unpack_recipe_schema(s):
         if check_for_context_schema(x)
             and (x.get('@type') == 'Recipe')]
     return recipe
+
+# parse out specific componentsss
+def extract_recipe_instructions(recipe):
+    KEYWORD = 'recipeInstructions'
+    PLACEHOLDER = []
+    instructions = recipe.get(KEYWORD, PLACEHOLDER)
+    if isinstance(instructions, str):
+        instructions = [{'text': instructions}]
+    elif isinstance(instructions, list) and isinstance(instructions[0], list):
+        instructions = unpack_list_of_lists(instructions)
+    instructions = [
+        x.get('text', None)
+        for x in instructions
+        ]
+    return instructions
+
+def extract_recipe_ratings(recipe):
+    KEYWORD = 'aggregateRating'
+    PLACEHOLDER = {}
+    rating = recipe.get(KEYWORD, PLACEHOLDER)
+    if isinstance(rating, list):
+        rating = rating[0]
+    rating = {
+        'rating': rating.get('ratingValue', None),
+        'rating_count': rating.get('reviewCount', None)
+        }
+    return rating
+
+def extract_recipe_ingredients(recipe):
+    KEYWORD = 'recipeIngredient'
+    PLACEHOLDER = []
+    ingredients = recipe.get(KEYWORD, PLACEHOLDER)
+    ingredients = [
+        {
+            'name': None,
+            'amount': None,
+            'unit': None,
+            'full_text': strip_excess_whitespace(x)
+            }
+        for x in ingredients
+        ]
+    return ingredients
