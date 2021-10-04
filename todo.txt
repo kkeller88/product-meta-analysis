@@ -1,4 +1,3 @@
-* Test out parsing on all domains we pulled
 * Improved ingredient / brand parsing
 *   Automatically detect frequently occurring ingredients
 *   Classify ingredients
