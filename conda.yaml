@@ -13,3 +13,4 @@ dependencies:
     - jupyter
     - ipykernel
     - matplotlib
+    - statsmodels

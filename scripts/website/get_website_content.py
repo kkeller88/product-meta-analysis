@@ -27,7 +27,12 @@ def get_content_(urls, content_type):
 		return parser
 
 	def extract_url_content(url, parser):
-		content = json.dumps(parser.parse(url))
+		try:
+			content = json.dumps(parser.parse(url))
+		except Exception as e:
+			print(f'Could not parse URL {url}')
+			print(e)
+			content = None
 		return content
 
 	parser = build_recipe_card_parser()
@@ -36,6 +41,7 @@ def get_content_(urls, content_type):
 		for url in urls
 		]
 	content = pd.DataFrame(content, columns=['url_id', 'url', 'content'])
+	content = content[content['content'].notnull()]
 	content['content_type'] = content_type
 	content['process_datetime'] = datetime.datetime.now()
 	content['process_date'] = datetime.date.today()
@@ -52,7 +58,7 @@ def save_content(data, db):
     db.drop('tmp')
 
 config_type = 'website_content'
-config_name = 'example'
+config_name = 'mac_and_cheese_long'
 config = read_config(config_type, config_name)
 domains = config.get('urls').get('domains')
 manual_urls = config.get('urls').get('urls')

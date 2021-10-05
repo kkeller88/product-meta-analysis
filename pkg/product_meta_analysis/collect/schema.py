@@ -3,13 +3,13 @@ from product_meta_analysis.utils import strip_excess_whitespace
 
 # unpack schema
 def unpack_list_of_lists(l):
-    if isinstance(l[0], list):
+    if (len(l) > 0) and isinstance(l[0], list):
         return list(itertools.chain.from_iterable(l))
     else:
         return l
 
 def unpack_schema_graph(l):
-    if not isinstance(l[0], dict):
+    if (len(l) == 0) or (not isinstance(l[0], dict)):
         return l
     else:
         graph_contents = []
@@ -52,8 +52,10 @@ def extract_recipe_instructions(recipe):
     instructions = recipe.get(KEYWORD, PLACEHOLDER)
     if isinstance(instructions, str):
         instructions = [{'text': instructions}]
-    elif isinstance(instructions, list) and isinstance(instructions[0], list):
+    elif isinstance(instructions, list) and (len(instructions) > 0) and isinstance(instructions[0], list):
         instructions = unpack_list_of_lists(instructions)
+    elif isinstance(instructions, list) and (len(instructions) > 0) and isinstance(instructions[0], str):
+        instructions = [{'text': x} for x in instructions]
     instructions = [
         x.get('text', None)
         for x in instructions
