@@ -1,0 +1,14 @@
+name: 'name of this config file'
+post_ids: [
+  "post ID 1",
+  "post ID 2",,
+  "post ID 3",,
+  "post ID 4",
+  "..."
+  ]
+brands: [
+  "brand or ingredient 1",
+  "brand or ingredient 2",
+  "brand or ingredient 3",
+  "..."
+  ]
