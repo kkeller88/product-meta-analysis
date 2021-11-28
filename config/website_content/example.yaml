@@ -1,0 +1,28 @@
+name: 'name of the config file' 
+urls:
+  # you can either (1) provide specific URLs to crawl or (2) provide domains to
+  # collect URLs from AND keywords those URLs must contain to be considered
+  domains: [
+    "domain to collect URLs from #1",
+    "domain to collect URLs from #1",
+    "domain to collect URLs from #1"
+    ]
+  urls: [
+    "specific url to crawl #1",
+    "specific url to crawl #2",
+    "specific url to crawl #3"
+    ]
+content:
+  match_terms: [
+    "term to search for in domain URL list #1",
+    "term to search for in domain URL list #2",
+    "term to search for in domain URL list #3",
+    ]
+  content_type: "schema_recipe_card_ingredients"
+match:
+  category: 'category of recipes you are analyzing'
+  ingredients: [
+    "ingredient to look for #1",
+    "ingredient to look for #2",
+    "ingredient to look for #3"
+    ]
