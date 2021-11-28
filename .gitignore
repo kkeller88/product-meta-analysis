@@ -133,3 +133,4 @@ dmypy.json
 secrets/
 config/
 scripts/adhoc
+/data/
